@@ -3,4 +3,8 @@
 .mypy_cache
 .DS_Store
 __pycache__
-
+src/metadata
+src/pipelines
+src/serving_model
+logs/*
+notebooks/*
