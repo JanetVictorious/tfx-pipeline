@@ -8,3 +8,7 @@ src/pipelines
 src/serving_model
 logs/*
 notebooks/*
+!notebooks/simple_*
+!notebooks/helper_*
+data/**/
+!data/01_raw
