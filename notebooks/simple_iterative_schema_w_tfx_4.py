@@ -1,24 +1,22 @@
-import tensorflow as tf
+import os
+import pprint
+
 import tensorflow_data_validation as tfdv
 
 from tfx.components import CsvExampleGen
 from tfx.components import StatisticsGen
 from tfx.components import ExampleValidator
 from tfx.components import SchemaGen
-from tfx.components import ImporterNode
 from tfx.dsl.components.common.importer import Importer
 from tfx.types import standard_artifacts
 
 from tfx.orchestration.experimental.interactive.interactive_context import \
     InteractiveContext
-from google.protobuf.json_format import MessageToDict
 from tensorflow_metadata.proto.v0 import schema_pb2
 
 import ml_metadata as mlmd
 from ml_metadata.proto import metadata_store_pb2
 
-import os
-import pprint
 pp = pprint.PrettyPrinter()
 
 base_path = os.path.dirname(__file__)
@@ -143,7 +141,8 @@ example_anomalies = store.get_artifacts_by_type('ExampleAnomalies')[0]
 print(f'Artifact id: {example_anomalies.id}')
 
 # Get first event related to the ID
-anomalies_id_event = store.get_events_by_artifact_ids([example_anomalies.id])[0]
+anomalies_id_event = store.get_events_by_artifact_ids(
+    [example_anomalies.id])[0]
 
 # Print results
 print(anomalies_id_event)
@@ -158,8 +157,8 @@ events_execution = store.get_events_by_execution_ids([anomalies_execution_id])
 print(events_execution)
 
 # Filter INPUT type events
-inputs_to_exval = [event.artifact_id for event in events_execution 
-                       if event.type == metadata_store_pb2.Event.INPUT]
+inputs_to_exval = [event.artifact_id for event in events_execution
+                   if event.type == metadata_store_pb2.Event.INPUT]
 
 # Print results
 print(inputs_to_exval)
