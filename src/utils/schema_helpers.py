@@ -7,52 +7,60 @@ from tfx.types import standard_component_specs
 from utils.mlmd_helpers import get_latest_artifacts, visualize_artifacts
 
 
-def schemas_to_html(schema_metadata_path: str,
-                    schema_pipeline_name: str,
-                    output_dir: str) -> None:
+def artifact_to_html(metadata_path: str,
+                     pipeline_name: str,
+                     base_path: str,
+                     artifact_type: str,
+                     output_dir: str) -> None:
+    """Function for exporting artifacts as HTML in pipeline."""
     metadata_connection_config = tfx.orchestration.metadata.\
-        sqlite_metadata_connection_config(schema_metadata_path)
+        sqlite_metadata_connection_config(metadata_path)
 
     with Metadata(metadata_connection_config) as metadata_handler:
         # Find output artifacts from MLMD.
-        try:
-            stat_gen_output = get_latest_artifacts(metadata_handler,
-                                                   schema_pipeline_name,
-                                                   'StatisticsGen')
-            stats_artifacts = stat_gen_output[
-                standard_component_specs.STATISTICS_KEY]
+        if artifact_type == 'statistics':
+            try:
+                stat_gen_output = get_latest_artifacts(metadata_handler,
+                                                       pipeline_name,
+                                                       'StatisticsGen')
+                stats_artifacts = stat_gen_output[
+                    standard_component_specs.STATISTICS_KEY]
 
-            # Visualize statistics
-            visualize_artifacts(artifacts=stats_artifacts,
-                                output_dir=output_dir)
-        except AttributeError:
-            print('StatisticsGen not available')
+                # Visualize statistics
+                visualize_artifacts(artifacts=stats_artifacts,
+                                    output_dir=output_dir)
+            except AttributeError:
+                print('StatisticsGen not available')
 
-        try:
-            schema_gen_output = get_latest_artifacts(metadata_handler,
-                                                     schema_pipeline_name,
-                                                     'SchemaGen')
-            schema_artifacts = schema_gen_output[
-                standard_component_specs.SCHEMA_KEY]
+        if artifact_type == 'schema':
+            try:
+                schema_gen_output = get_latest_artifacts(metadata_handler,
+                                                         pipeline_name,
+                                                         'SchemaGen')
+                schema_artifacts = schema_gen_output[
+                    standard_component_specs.SCHEMA_KEY]
 
-            # Visualize schema
-            visualize_artifacts(artifacts=schema_artifacts,
-                                output_dir=output_dir)
-        except AttributeError:
-            print('SchemaGen not available')
+                # Visualize schema
+                visualize_artifacts(artifacts=schema_artifacts,
+                                    base_path=base_path,
+                                    output_dir=output_dir)
+            except AttributeError:
+                print('SchemaGen not available')
 
-        try:
-            ev_output = get_latest_artifacts(metadata_handler,
-                                             schema_pipeline_name,
-                                             'ExampleValidator')
-            anomalies_artifacts = ev_output[
-                standard_component_specs.ANOMALIES_KEY]
+        if artifact_type == 'anomalies':
+            try:
+                ev_output = get_latest_artifacts(metadata_handler,
+                                                 pipeline_name,
+                                                 'ExampleValidator')
+                anomalies_artifacts = ev_output[
+                    standard_component_specs.ANOMALIES_KEY]
 
-            # Visualize anomalies
-            visualize_artifacts(artifacts=anomalies_artifacts,
-                                output_dir=output_dir)
-        except AttributeError:
-            print('ExampleValidator not available')
+                # Visualize anomalies
+                visualize_artifacts(artifacts=anomalies_artifacts,
+                                    base_path=base_path,
+                                    output_dir=output_dir)
+            except AttributeError:
+                print('ExampleValidator not available')
 
 
 def export_latest_shema(schema_metadata_path: str,

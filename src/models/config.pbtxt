@@ -1,0 +1,47 @@
+## Model information
+model_specs {
+  # For keras (and serving models), you need to add a `label_key`.
+  label_key: "tips_xf"
+  preprocessing_function_names: ["transform_features"]
+}
+## Post training metric information. These will be merged with any built-in
+## metrics from training.
+metrics_specs {
+  metrics { class_name: "ExampleCount" }
+  metrics { class_name: "BinaryAccuracy" }
+  metrics { class_name: "BinaryCrossentropy" }
+  metrics { class_name: "AUC" }
+  metrics { class_name: "AUCPrecisionRecall" }
+  metrics { class_name: "Precision" }
+  metrics { class_name: "Recall" }
+  metrics { class_name: "MeanLabel" }
+  metrics { class_name: "MeanPrediction" }
+  metrics { class_name: "Calibration" }
+  metrics { class_name: "CalibrationPlot" }
+  metrics { class_name: "ConfusionMatrixPlot" }
+  # ... add additional metrics and plots ...
+}
+## Slicing information
+# overall slice
+slicing_specs {}
+# slice specific features
+slicing_specs {
+  feature_keys: ["trip_start_hour"]
+}
+slicing_specs {
+  feature_keys: ["trip_start_day"]
+}
+slicing_specs {
+  feature_keys: ["trip_start_month"]
+}
+# slice specific values from features
+slicing_specs {
+  feature_values: {
+    key: "trip_start_month"
+    value: "1"
+  }
+}
+# slice feature crosses
+slicing_specs {
+  feature_keys: ["trip_start_day", "trip_start_month"]
+}
