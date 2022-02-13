@@ -12,9 +12,12 @@ logs/*
 notebooks/*
 !notebooks/simple_*
 !notebooks/helper_*
-data/**/
-!data/01_raw
-!data/01_raw/*
+data/*
+!data/chicago_taxi_trips
+!data/titanic
 
 # New from tfx
 outputs/*
+!outputs/foo.txt
+schema/*
+!schema/example_schema.pbtxt

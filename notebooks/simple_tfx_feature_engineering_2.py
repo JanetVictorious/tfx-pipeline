@@ -25,10 +25,10 @@ _pipeline_root = './pipeline/'
 
 # Directory of the raw data files
 _data_root = os.path.abspath(
-    os.path.join(base_path, '..', 'data/01_raw'))
+    os.path.join(base_path, '..', 'data/01_raw/train'))
 
 # Path to the raw training data
-_data_filepath = os.path.join(_data_root, 'data.csv')
+_data_filepath = os.path.join(_data_root, 'train.csv')
 
 # Initialize the InteractiveContext with a local sqlite file.
 # If you leave `_pipeline_root` blank, then the db will be created in a

@@ -10,6 +10,7 @@ Folder structure
 ├── data/                          # Data folder
 ├── notebooks/                     # Example TFX notebooks
 ├── outputs/                       # Local runs outputs folder
+├── schema/                        # Custom defined schema
 ├── src/
 │   ├── data
 │   │   └── data.csv               # Source data
