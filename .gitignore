@@ -21,3 +21,4 @@ outputs/*
 !outputs/foo.txt
 schema/*
 !schema/example_schema.pbtxt
+old_src

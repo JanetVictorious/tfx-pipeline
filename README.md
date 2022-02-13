@@ -33,10 +33,12 @@ Folder structure
 │   ├── utils/                     # Directory of utils/helper functions
 │   ├── data_validation.ipynb      # Data validation notebook
 │   ├── local_runner.py            # Runner for local orchestration
-│   ├── model_analysis.ipynb       # Model analysis notebook
-│   ├── requirements.in            # Environment requirements
-│   └── requirements.txt           # Compiled requirements
+│   └── model_analysis.ipynb       # Model analysis notebook
+├── .dockerignore
 ├── .gitignore
+├── Dockerfile
+├── requirements.in                # Environment requirements
+├── requirements.txt               # Compiled requirements
 └── README.md
 ```
 
@@ -62,7 +64,7 @@ $ python -m venv .venv
 $ .venv/bin/pip install --upgrade pip
 
 # Install requirements
-$ .venv/bin/pip install -r src/requirements.txt
+$ .venv/bin/pip install -r requirements.txt
 
 # Activate environment
 $ source .venv/bin/activate
@@ -87,9 +89,31 @@ $ pip-compile src/requirements.in
 
 ---
 
-## Run pipeline locally
+## Run pipeline locally (python CLI)
 
 When you want to run the pipeline using the `local_runner.py` script, simply run:
 ```shell
 $ python src/local_runner.py
+```
+
+---
+
+## Run pipeline with Docker
+
+### Build the image
+
+Build the image using the `docker build` command:
+
+```shell
+$ docker build -t tfx-pipeline:latest .
+```
+
+### Run the container
+
+Now that the image has been successfully built it is time to run a container out of it. You can do so by using the following command:
+
+```shell
+$ docker run -it \
+$   -v $PWD/test_dir/data/:/app/data/ \
+$   --rm tfx-pipeline:latest
 ```
