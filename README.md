@@ -82,7 +82,7 @@ In case you need to update any requirements (e.g. update a package version or ad
 # Update src/requirements.in with new package versions/added packages
 
 # Compile requirements
-$ pip-compile src/requirements.in
+$ pip-compile requirements.in
 
 # Redo steps in section `Set up environment`
 ```

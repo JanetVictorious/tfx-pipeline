@@ -4,10 +4,6 @@
 .DS_Store
 __pycache__
 .ipynb_checkpoints
-src/metadata
-src/pipeline
-src/serving_model
-!src/pipeline.py
 logs/*
 notebooks/*
 !notebooks/simple_*
@@ -15,6 +11,8 @@ notebooks/*
 data/*
 !data/chicago_taxi_trips
 !data/titanic
+logs/*
+!logs/foo.txt
 
 # New from tfx
 outputs/*
