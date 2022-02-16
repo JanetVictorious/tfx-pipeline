@@ -26,7 +26,7 @@ The flow between TFX components is depicted in the graph below. The following ca
     Model validation outcomes. If a model is deemed `BLESSED` it will be pushed for serving.
 
 ```mermaid
-stateDiagram
+stateDiagram-v2
     direction LR
     [*] --> ExampleGen
     ExampleGen --> StatisticsGen
