@@ -4,6 +4,50 @@ This is a TFX example pipeline.
 
 ---
 
+## Conceptual pipeline flow
+
+The flow between TFX components is depicted in the graph below. The following can be said about the TFX components:
+* `ExampleGen`:  
+    Data is ingested into the pipeline and splitted into `Train` and `Eval` sets.
+
+* `StatisticsGen`, `SchemaGen`, and `ExampleValidator`:  
+    Data validation and anomalies detection.
+
+* `Transform`:  
+    Transformation and preprocessing of data.
+
+* `Tuner`, and `Trainer`:  
+    Estimator with tuned (or untuned) hyper parameters is trained.
+
+* `Evaluator`:  
+    Model analysis of trained model
+
+* `Pusher`:  
+    Model validation outcomes. If a model is deemed `BLESSED` it will be pushed for serving.
+
+```mermaid
+stateDiagram
+    direction LR
+    [*] --> ExampleGen
+    ExampleGen --> StatisticsGen
+    StatisticsGen --> SchemaGen
+    StatisticsGen --> ExampleValidator
+    ExampleGen --> Transform
+    SchemaGen --> Transform
+    Transform --> Tuner
+    SchemaGen --> Tuner
+    SchemaGen --> Trainer
+    Transform --> Trainer
+    Tuner --> Trainer
+    ExampleGen --> Evaluator
+    Trainer --> Evaluator
+    Trainer --> Pusher
+    Evaluator --> Pusher
+    Pusher --> [*]
+```
+
+---
+
 Folder structure
 ```shell
 .
@@ -120,28 +164,4 @@ Now that the image has been successfully built it is time to run a container out
 $ docker run -it \
 $   -v $PWD/test_dir/data/:/app/data/ \
 $   --rm tfx-pipeline:latest
-```
-
----
-
-## Conceptual pipeline flow
-```mermaid
-stateDiagram
-    direction LR
-    [*] --> ExampleGen
-    ExampleGen --> StatisticsGen
-    StatisticsGen --> SchemaGen
-    StatisticsGen --> ExampleValidator
-    ExampleGen --> Transform
-    SchemaGen --> Transform
-    Transform --> Tuner
-    SchemaGen --> Tuner
-    SchemaGen --> Trainer
-    Transform --> Trainer
-    Tuner --> Trainer
-    ExampleGen --> Evaluator
-    Trainer --> Evaluator
-    Trainer --> Pusher
-    Evaluator --> Pusher
-    Pusher --> [*]
 ```
