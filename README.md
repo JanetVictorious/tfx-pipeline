@@ -126,19 +126,22 @@ $   --rm tfx-pipeline:latest
 
 ## Pipeline components
 ```mermaid
-flowchart TD
-    A[ExampleGen] --> B[StatisticsGen];
-    B --> C[SchemaGen];
-    B --> D[ExampleValidator];
-    A --> E[Transform];
-    C --> E[Transform];
-    E --> F[Tuner];
-    C --> F[Tuner];
-    C --> G[Trainer];
-    E --> G[Trainer];
-    F --> G[Trainer];
-    A --> H[Evaluator];
-    G --> H[Evaluator];
-    G --> I[Pusher];
-    H --> I[Pusher];
+stateDiagram
+    direction LR
+    [*] --> ExampleGen
+    ExampleGen --> StatisticsGen
+    StatisticsGen --> SchemaGen
+    StatisticsGen --> ExampleValidator
+    ExampleGen --> Transform
+    SchemaGen --> Transform
+    Transform --> Tuner
+    SchemaGen --> Tuner
+    SchemaGen --> Trainer
+    Transform --> Trainer
+    Tuner --> Trainer
+    ExampleGen --> Evaluator
+    Trainer --> Evaluator
+    Trainer --> Pusher
+    Evaluator --> Pusher
+    Pusher --> [*]
 ```
