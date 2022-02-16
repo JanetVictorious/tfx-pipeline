@@ -14,8 +14,7 @@ from models import features
 
 
 def _fill_in_missing(x: tf.sparse.SparseTensor,
-                     fill_value=None,
-                     fill_strategy: Optional[str] = None):
+                     fill_value=None):
     """Replace missing values in a SparseTensor.
 
     Fills in missing values of `x` with either specified `fill_strategy`,
@@ -26,10 +25,6 @@ def _fill_in_missing(x: tf.sparse.SparseTensor,
         second dimension.
     :param fill_value:
         Specified value to impute missing values.
-    :param str fill_strategy:
-        Fill strategy (for numeric features) can be any of:
-        - `mean`: calculates the mean over `x`
-        - `median`: calculates the median over `x`
 
     :return:
         A rank 1 tensor where missing values of `x` have been filled in.
@@ -37,11 +32,18 @@ def _fill_in_missing(x: tf.sparse.SparseTensor,
     if not isinstance(x, tf.sparse.SparseTensor):
         return x
 
-    if fill_strategy == 'mean':
-        default_value = tft.mean(x)
-    elif fill_strategy == 'median':
-        default_value = tfp.stats.percentile(x, 50.0, interpolation='midpoint')
-    elif fill_value:
+    # if fill_strategy == 'mean':
+    #     default_value = tft.mean(x)
+    # elif fill_strategy == 'median':
+    #     default_value = tfp.stats.percentile(
+    #         x, 50.0, interpolation='midpoint')
+    #     # if x.dtype in [tf.int32, tf.int64]:
+    #     #     default_value = tfp.stats.percentile(
+    #     #         x, 50.0, interpolation='nearest')
+    #     # else:
+    #     #     default_value = tfp.stats.percentile(
+    #     #         x, 50.0, interpolation='midpoint')
+    if fill_value is not None:
         default_value = fill_value
     else:
         default_value = '' if x.dtype == tf.string else 0
@@ -66,6 +68,7 @@ def preprocessing_fn(inputs):
       Map from string feature key to transformed feature operations.
     """
     outputs = {}
+
     for key in features.DENSE_FLOAT_FEATURE_KEYS:
         # NOTE: Impute with mean/median for float features
         # OPTION 1: MEAN
@@ -80,7 +83,9 @@ def preprocessing_fn(inputs):
 
         # If sparse make it dense, impute missing values, and apply zscore.
         outputs[features.transformed_name(key)] = tft.scale_to_z_score(
-            _fill_in_missing(inputs[key], fill_strategy='median'))
+            _fill_in_missing(inputs[key],
+                             fill_value=tf.cast(tft.mean(inputs[key]),
+                                                inputs[key].dtype)))
 
     for key in features.VOCAB_FEATURE_KEYS:
         # Build a vocabulary for this feature.
@@ -100,14 +105,14 @@ def preprocessing_fn(inputs):
     for key in features.CATEGORICAL_FEATURE_KEYS:
         outputs[features.transformed_name(key)] = _fill_in_missing(inputs[key])
 
-    # NOTE: One-Hot encoding strategy
-    # Convert strings to indices and convert to one-hot vectors
-    for key, vocab_size in features.VOCAB_FEATURE_DICT.items():
-        indices = tft.compute_and_apply_vocabulary(
-            inputs[key], num_oov_buckets=features.OOV_SIZE)
-        one_hot = tf.one_hot(indices, vocab_size + features.OOV_SIZE)
-        outputs[features.transformed_name(key)] = tf.reshape(
-            one_hot, [-1, vocab_size + features.OOV_SIZE])
+    # # NOTE: One-Hot encoding strategy
+    # # Convert strings to indices and convert to one-hot vectors
+    # for key, vocab_size in features.VOCAB_FEATURE_DICT.items():
+    #     indices = tft.compute_and_apply_vocabulary(
+    #         inputs[key], num_oov_buckets=features.OOV_SIZE)
+    #     one_hot = tf.one_hot(indices, vocab_size + features.OOV_SIZE)
+    #     outputs[features.transformed_name(key)] = tf.reshape(
+    #         one_hot, [-1, vocab_size + features.OOV_SIZE])
 
     # # Bucketize this feature and convert to one-hot vectors
     # for key, num_buckets in _BUCKET_FEATURE_DICT.items():

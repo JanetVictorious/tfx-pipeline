@@ -19,6 +19,7 @@ from tfx.dsl.components.base import executor_spec
 from utils.custom_executor import Executor
 
 from ml_metadata.proto import metadata_store_pb2
+from google.protobuf import text_format
 
 from models import features
 
@@ -31,7 +32,6 @@ def create_pipeline(
     data_path: str,
     # TODO: (Optional) Uncomment here to use BigQuery as a data source.
     # query: str,
-    preprocessing_fn: str,
     module_file: str,
     train_args: tfx.proto.TrainArgs,
     eval_args: tfx.proto.EvalArgs,
@@ -44,7 +44,8 @@ def create_pipeline(
     ai_platform_training_args: Optional[Dict[str, str]] = None,
     ai_platform_serving_args: Optional[Dict[str, Any]] = None,
     enable_tuning: bool = False,
-    hparams_dir: Optional[str] = None
+    hparams_dir: Optional[str] = None,
+    eval_config_file: Optional[str] = None
 ) -> tfx.dsl.Pipeline:
     """Implements the chicago taxi pipeline with TFX."""
 
@@ -95,7 +96,8 @@ def create_pipeline(
         # Generates schema based on statistics files.
         schema_gen = tfx.components.SchemaGen(
             statistics=statistics_gen.outputs['statistics'],
-            exclude_splits=['eval'])
+            exclude_splits=['eval'],
+            infer_feature_shape=True)
         # NOTE: Uncomment here to add SchemaGen to the pipeline.
         components_list.append(schema_gen)
     else:
@@ -124,9 +126,9 @@ def create_pipeline(
     transform = tfx.components.Transform(
         examples=example_gen.outputs['examples'],
         schema=schema_gen.outputs['schema'],
-        preprocessing_fn=preprocessing_fn)
+        module_file=module_file)
     # NOTE: Uncomment here to add Transform to the pipeline.
-    # components_list.append(transform)
+    components_list.append(transform)
 
     #
     # TODO: Add feature selection
@@ -214,7 +216,7 @@ def create_pipeline(
             # hyperparameters to None here.
             )
     # NOTE: Uncomment here to add Trainer to the pipeline.
-    # components_list.append(trainer)
+    components_list.append(trainer)
 
     # +--------------+
     # |   Resolver   |
@@ -228,7 +230,7 @@ def create_pipeline(
             type=tfx.types.standard_artifacts.ModelBlessing)).with_id(
                 'latest_blessed_model_resolver')
     # NOTE: Uncomment here to add Resolver to the pipeline.
-    # components_list.append(model_resolver)
+    components_list.append(model_resolver)
 
     # +---------------+
     # |   Evaluator   |
@@ -236,32 +238,37 @@ def create_pipeline(
 
     # Uses TFMA to compute a evaluation statistics over features of a model and
     # perform quality validation of a candidate model (compared to a baseline).
-    eval_config = tfma.EvalConfig(
-        model_specs=[
-            tfma.ModelSpec(
-                signature_name='serving_default',
-                # label_key=features.LABEL_KEY,
-                # Use transformed label key if Transform is used.
-                label_key=features.transformed_name(features.LABEL_KEY),
-                preprocessing_function_names=['transform_features'])
-        ],
-        slicing_specs=[tfma.SlicingSpec(),
-                       tfma.SlicingSpec(feature_keys=['trip_start_hour']),
-                       tfma.SlicingSpec(feature_keys=['trip_start_day']),
-                       tfma.SlicingSpec(feature_keys=['trip_start_month']),
-                       ],
-        metrics_specs=[
-            tfma.MetricsSpec(metrics=[
-                tfma.MetricConfig(
-                    class_name='BinaryAccuracy',
-                    threshold=tfma.MetricThreshold(
-                        value_threshold=tfma.GenericValueThreshold(
-                            lower_bound={'value': eval_accuracy_threshold}),
-                        change_threshold=tfma.GenericChangeThreshold(
-                            direction=tfma.MetricDirection.HIGHER_IS_BETTER,
-                            absolute={'value': -1e-10})))
+    if eval_config_file:
+        with open(eval_config_file, 'r') as eval_file:
+            eval_str = eval_file.read()
+        eval_config = text_format.Parse(eval_str, tfma.EvalConfig())
+    else:
+        eval_config = tfma.EvalConfig(
+            model_specs=[
+                tfma.ModelSpec(
+                    signature_name='serving_default',
+                    # label_key=features.LABEL_KEY,
+                    # Use transformed label key if Transform is used.
+                    label_key=features.transformed_name(features.LABEL_KEY),
+                    preprocessing_function_names=['transform_features'])
+            ],
+            slicing_specs=[tfma.SlicingSpec(),
+                           tfma.SlicingSpec(feature_keys=['trip_start_hour']),
+                           tfma.SlicingSpec(feature_keys=['trip_start_day']),
+                           tfma.SlicingSpec(feature_keys=['trip_start_month']),
+                           ],
+            metrics_specs=[
+                tfma.MetricsSpec(metrics=[
+                    tfma.MetricConfig(
+                        class_name='BinaryAccuracy',
+                        threshold=tfma.MetricThreshold(
+                            value_threshold=tfma.GenericValueThreshold(
+                                lower_bound={'value': eval_accuracy_threshold}),
+                            change_threshold=tfma.GenericChangeThreshold(
+                                direction=tfma.MetricDirection.HIGHER_IS_BETTER,
+                                absolute={'value': -1e-10})))
+                ])
             ])
-        ])
     evaluator = tfx.components.Evaluator(
         examples=example_gen.outputs['examples'],
         model=trainer.outputs['model'],
@@ -269,7 +276,7 @@ def create_pipeline(
         # Change threshold will be ignored if there is no baseline (first run).
         eval_config=eval_config)
     # NOTE: Uncomment here to add Evaluator to the pipeline.
-    # components_list.append(evaluator)
+    components_list.append(evaluator)
 
     # +------------+
     # |   Pusher   |
@@ -296,7 +303,7 @@ def create_pipeline(
                 base_directory=serving_model_dir))
         pusher = tfx.components.Pusher(**pusher_args)  # noqa: F841
     # NOTE: Uncomment here to add Pusher to the pipeline.
-    # components_list.append(pusher)
+    components_list.append(pusher)
 
     return tfx.dsl.Pipeline(
         pipeline_name=pipeline_name,

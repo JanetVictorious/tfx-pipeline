@@ -19,14 +19,15 @@ from models.keras_model import model
 
 class ModelTest(tf.test.TestCase):
 
-  def testBuildKerasModel(self):
-    built_model = model._build_keras_model(
-        hidden_units=[1, 1], learning_rate=0.1)  # pylint: disable=protected-access
-    self.assertEqual(len(built_model.layers), 10)
+    def testBuildKerasModel(self):
+        built_model = model._build_keras_model(
+            hidden_units=[1, 1], learning_rate=0.1)
+        self.assertEqual(len(built_model.layers), 10)
 
-    built_model = model._build_keras_model(hidden_units=[1], learning_rate=0.1)  # pylint: disable=protected-access
-    self.assertEqual(len(built_model.layers), 9)
+        built_model = model._build_keras_model(
+            hidden_units=[1], learning_rate=0.1)
+        self.assertEqual(len(built_model.layers), 9)
 
 
 if __name__ == '__main__':
-  tf.test.main()
+    tf.test.main()

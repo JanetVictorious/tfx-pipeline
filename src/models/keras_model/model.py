@@ -12,8 +12,11 @@ import tensorflow_transform as tft
 from tfx import v1 as tfx
 from tfx_bsl.public import tfxio
 
-from models import features
+from models import features, preprocessing
 from models.keras_model import constants
+
+# TFX Transform will call this function.
+preprocessing_fn = preprocessing.preprocessing_fn
 
 # Callback for the search strategy
 stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
@@ -34,7 +37,8 @@ def _get_hyperparameters() -> kt.HyperParameters:
     return hp
 
 
-def _get_tf_examples_serving_signature(model, tf_transform_output):
+def _get_tf_examples_serving_signature(
+        model, tf_transform_output: tft.TFTransformOutput):
     """Returns a serving signature that accepts `tensorflow.Example`."""
 
     # We need to track the layers in the model in order to save it.
@@ -46,15 +50,18 @@ def _get_tf_examples_serving_signature(model, tf_transform_output):
     def serve_tf_examples_fn(serialized_tf_example):
         """Returns the output to be used in the serving signature."""
         raw_feature_spec = tf_transform_output.raw_feature_spec()
+
         # Remove label feature since these will not be present at serving time.
         raw_feature_spec.pop(features.LABEL_KEY)
-        raw_features = tf.io.parse_example(serialized_tf_example, raw_feature_spec)
+
+        raw_features = tf.io.parse_example(serialized_tf_example,
+                                           raw_feature_spec)
+
+        # Transform raw features
         transformed_features = model.tft_layer_inference(raw_features)
         logging.info('serve_transformed_features = %s', transformed_features)
 
         outputs = model(transformed_features)
-        # TODO(b/154085620): Convert the predicted labels from the model using a
-        # reverse-lookup (opposite of transform.py).
         return {'outputs': outputs}
 
     return serve_tf_examples_fn

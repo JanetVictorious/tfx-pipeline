@@ -45,6 +45,10 @@ Folder structure
 There are some files with `_test.py` in their name. These are unit tests of the pipeline and it is recommended to add more unit tests as you implement your own pipelines. You can run unit tests by supplying the module name of test files with `-m` flag. You can usually get a module name by deleting `.py` extension and replacing `/` with `.`. For example:
 
 ```shell
+# cd into src folder
+$ cd src
+
+# Run test file
 $ python -m models.features_test
 ```
 
