@@ -145,21 +145,3 @@ stateDiagram
     Evaluator --> Pusher
     Pusher --> [*]
 ```
-
-```mermaid
-flowchart LR
-    A(ExampleGen) --> B(StatisticsGen)
-    B --> C(SchemaGen)
-    B --> D(ExampleValidator)
-    A --> E(Transform)
-    C --> E(Transform)
-    E --> F(Tuner)
-    C --> F(Tuner)
-    C --> G(Trainer)
-    E --> G(Trainer)
-    F --> G(Trainer)
-    A --> H(Evaluator)
-    G --> H(Evaluator)
-    G --> I(Pusher)
-    H --> I(Pusher)
-    
