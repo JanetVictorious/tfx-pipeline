@@ -650,6 +650,7 @@ tensorflow-probability==0.15.0
     # via -r requirements.in
 tensorflow-serving-api==2.7.0
     # via
+    #   -r requirements.in
     #   tfx
     #   tfx-bsl
 tensorflow-transform==1.5.0
