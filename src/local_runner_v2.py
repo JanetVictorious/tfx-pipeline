@@ -89,7 +89,12 @@ if __name__ == '__main__':
     MODULE_FILE = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), configs.MODULE_FILE)
 
-    HPARAMS_DIR = os.path.abspath(os.path.join('..', PIPELINE_ROOT, 'Tuner'))
+    HPARAMS_PATH = os.path.abspath(os.path.join('..',
+                                                PIPELINE_ROOT,
+                                                'Tuner',
+                                                'best_hyperparameters',
+                                                '24',
+                                                'best_hyperparameters.txt'))
 
     EVAL_CONFIG_PATH = PARSER.eval_config_path
 
@@ -110,8 +115,8 @@ if __name__ == '__main__':
             serving_model_dir=SERVING_MODEL_DIR,
             # NOTE: (Optional) Uncomment here to perform HPO tuning or load
             # already tuned hparams.
-            # enable_tuning=True,
-            hparams_dir=HPARAMS_DIR,
+            enable_tuning=True,
+            # hparams_path=HPARAMS_PATH,
             # NOTE: (Optional) Uncomment here to use provide GCP related
             # config for BigQuery with Beam DirectRunner.
             # beam_pipeline_args=configs.

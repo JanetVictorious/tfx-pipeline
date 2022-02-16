@@ -44,7 +44,7 @@ def create_pipeline(
     ai_platform_training_args: Optional[Dict[str, str]] = None,
     ai_platform_serving_args: Optional[Dict[str, Any]] = None,
     enable_tuning: bool = False,
-    hparams_dir: Optional[str] = None,
+    hparams_path: Optional[str] = None,
     eval_config_file: Optional[str] = None
 ) -> tfx.dsl.Pipeline:
     """Implements the chicago taxi pipeline with TFX."""
@@ -142,7 +142,7 @@ def create_pipeline(
     # Python function. Note that once the hyperparameters are tuned, you can
     # drop the Tuner component from pipeline and feed Trainer with tuned
     # hyperparameters.
-    if enable_tuning and hparams_dir is None:
+    if enable_tuning and hparams_path is None:
         tuner = tfx.components.Tuner(
             module_file=module_file,
             examples=transform.outputs['transformed_examples'],
@@ -152,33 +152,41 @@ def create_pipeline(
             eval_args=tfx.proto.EvalArgs(num_steps=100))
         hparams = tuner.outputs['best_hyperparameters']
         components_list.append(tuner)
-    elif hparams_dir is not None:
+    elif hparams_path is not None:
         # Check Tuner directory exists in output folder
-        if not os.path.isdir(hparams_dir):
+        if not os.path.isfile(hparams_path):
             hparams = None
         else:
-            with metadata.Metadata(metadata_connection_config) as store:
-                try:
-                    # Extract latest Tuner artifact
-                    tuner_artifact = get_latest_artifacts(
-                        store, pipeline_name, 'Tuner')
-                    # Extract path
-                    tuner_path = tuner_artifact[
-                        'best_hyperparameters'][-1].uri
-                    # Extract path to hyperparameters
-                    hparams_path = os.path.join(tuner_path,
-                                                'best_hyperparameters.txt')
-                    # Import parameters
-                    hparams_importer = Importer(
-                        source_uri=hparams_path,
-                        artifact_type=HyperParameters)\
-                        .with_id('import_hparams')
-                    hparams = hparams_importer.outputs['result']
-                    components_list.append(hparams_importer)
-                except AttributeError:
-                    print('Tuner artifact not available...')
-                    print('Set hparams to None')
-                    hparams = None
+            # Import parameters
+            hparams_importer = Importer(
+                source_uri=hparams_path,
+                artifact_type=HyperParameters
+            ).with_id('import_hparams')
+            hparams = hparams_importer.outputs['result']
+            components_list.append(hparams_importer)
+
+            # with metadata.Metadata(metadata_connection_config) as store:
+            #     try:
+            #         # Extract latest Tuner artifact
+            #         tuner_artifact = get_latest_artifacts(
+            #             store, pipeline_name, 'Tuner')
+            #         # Extract path
+            #         tuner_path = tuner_artifact[
+            #             'best_hyperparameters'][-1].uri
+            #         # Extract path to hyperparameters
+            #         hparams_path = os.path.join(tuner_path,
+            #                                     'best_hyperparameters.txt')
+            #         # Import parameters
+            #         hparams_importer = Importer(
+            #             source_uri=hparams_path,
+            #             artifact_type=HyperParameters)\
+            #             .with_id('import_hparams')
+            #         hparams = hparams_importer.outputs['result']
+            #         components_list.append(hparams_importer)
+            #     except AttributeError:
+            #         print('Tuner artifact not available...')
+            #         print('Set hparams to None')
+            #         hparams = None
     else:
         hparams = None
 
