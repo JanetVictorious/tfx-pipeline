@@ -19,8 +19,11 @@ The flow between TFX components is depicted in the graph below. The following ca
 * `Tuner`, and `Trainer`:  
     Estimator with tuned (or untuned) hyper parameters is trained.
 
-* `Resolver`, and `Evaluator`:  
+* `Evaluator`:  
     Model analysis of trained model. The model will be assigned `BLESSED` or `UNBLESSED` depending on the evaluation metrics threshold(s).
+
+* `InfraValidator`:  
+    Model infrastructure validation. To guarantee the model is mechanically fine and prevents bad models from being pushed.
 
 * `Pusher`:  
     Model validation outcomes. If a model is deemed `BLESSED` it will be pushed for serving.
