@@ -19,7 +19,7 @@ The flow between TFX components is depicted in the graph below. The following ca
 * `Tuner`, and `Trainer`:  
     Estimator with tuned (or untuned) hyperparameters is trained.
 
-* `Evaluator`:  
+* `Resolver`, and `Evaluator`:  
     Model analysis of trained model. The model will be assigned `BLESSED` or `UNBLESSED` depending on the evaluation metrics threshold(s).
 
 * `InfraValidator`:  
