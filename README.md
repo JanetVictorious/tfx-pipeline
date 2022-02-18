@@ -17,7 +17,7 @@ The flow between TFX components is depicted in the graph below. The following ca
     Transformation and preprocessing of data.
 
 * `Tuner`, and `Trainer`:  
-    Estimator with tuned (or untuned) hyper parameters is trained.
+    Estimator with tuned (or untuned) hyperparameters is trained.
 
 * `Evaluator`:  
     Model analysis of trained model. The model will be assigned `BLESSED` or `UNBLESSED` depending on the evaluation metrics threshold(s).
@@ -42,8 +42,10 @@ stateDiagram-v2
     SchemaGen --> Trainer
     Transform --> Trainer
     Tuner --> Trainer
+    Trainer --> Resolver
     ExampleGen --> Evaluator
     Trainer --> Evaluator
+    Resolver --> Evaluator
     ExampleGen --> InfraValidator
     Trainer --> InfraValidator
     Trainer --> Pusher
