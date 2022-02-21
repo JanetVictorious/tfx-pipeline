@@ -27,9 +27,9 @@ def _get_hyperparameters() -> kt.HyperParameters:
     hp = kt.HyperParameters()
 
     # Defines search space.
-    # hp.Choice(name='learning_rate', values=[1e-2, 1e-3, 1e-4], default=1e-3)
-    hp.Float(name='learning_rate', min_value=1e-3,
-             max_value=1e-1, default=1e-2)
+    hp.Choice(name='learning_rate', values=[1e-2, 1e-3, 1e-4], default=1e-3)
+    # hp.Float(name='learning_rate', min_value=1e-3,
+    #          max_value=1e-1, default=1e-2)
     # hp.Int('units_1', 8, 16, default=2)
     # hp.Int('units_2', 8, 16, default=2)
     hp.Fixed(name='units_1', value=16)

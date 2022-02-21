@@ -44,6 +44,8 @@ VOCAB_FEATURE_KEYS = [
 # Number of vocabulary terms used for encoding VOCAB_FEATURES by tf.transform
 VOCAB_SIZE = 1000
 
+# Name of features which have string values and are mapped to integers
+# Number of vocabulary terms used for encoding VOCAB_FEATURES by tf.transform
 VOCAB_FEATURE_DICT = {'payment_type': 1000,
                       'company': 1000}
 

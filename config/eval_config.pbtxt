@@ -35,6 +35,12 @@ metrics_specs {
   metrics { class_name: "CalibrationPlot" }
   metrics { class_name: "ConfusionMatrixPlot" }
   # ... add additional metrics and plots ...
+
+  # # Fairness indicators
+  # metrics {
+  #   class_name: "FairnessIndicators"
+  #   config: '{ "thresholds": [0.22, 0.5, 0.75] }'
+  # }
 }
 
 ## Slicing information

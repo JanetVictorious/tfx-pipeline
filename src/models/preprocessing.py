@@ -4,8 +4,6 @@ This file defines a template for TFX Transform component and uses features
 defined in features.py.
 """
 
-from typing import Optional
-
 import tensorflow as tf
 import tensorflow_transform as tft
 import tensorflow_probability as tfp
@@ -99,7 +97,9 @@ def preprocessing_fn(inputs):
     #                             features.BUCKET_FEATURE_BUCKET_COUNT):
     for key, num_buckets in features.BUCKET_FEATURE_DICT.items():
         outputs[features.transformed_name(key)] = tft.bucketize(
-            _fill_in_missing(inputs[key]),
+            _fill_in_missing(
+                inputs[key],
+                fill_value=tf.cast(tft.mean(inputs[key]), inputs[key].dtype)),
             num_buckets)
 
     for key in features.CATEGORICAL_FEATURE_KEYS:
@@ -109,7 +109,7 @@ def preprocessing_fn(inputs):
     # # Convert strings to indices and convert to one-hot vectors
     # for key, vocab_size in features.VOCAB_FEATURE_DICT.items():
     #     indices = tft.compute_and_apply_vocabulary(
-    #         inputs[key], num_oov_buckets=features.OOV_SIZE)
+    #         _fill_in_missing(inputs[key]), num_oov_buckets=features.OOV_SIZE)
     #     one_hot = tf.one_hot(indices, vocab_size + features.OOV_SIZE)
     #     outputs[features.transformed_name(key)] = tf.reshape(
     #         one_hot, [-1, vocab_size + features.OOV_SIZE])

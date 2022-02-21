@@ -45,7 +45,7 @@ def create_pipeline(
     ai_platform_serving_args: Optional[Dict[str, Any]] = None,
     enable_tuning: bool = False,
     hparams_path: Optional[str] = None,
-    eval_config_file: Optional[str] = None
+    eval_config_path: Optional[str] = None
 ) -> tfx.dsl.Pipeline:
     """Implements the chicago taxi pipeline with TFX."""
 
@@ -67,7 +67,7 @@ def create_pipeline(
     example_gen = tfx.components.CsvExampleGen(input_base=data_path,
                                                output_config=output)
     # NOTE: (Optional) Uncomment here to use FileBasedExampleGen, i.e. other
-    # formats than CSV.
+    # formats than CSV, or with customized executor.
     # example_gen = FileBasedExampleGen(
     #     input_base=data_path,
     #     output_config=output,
@@ -246,8 +246,8 @@ def create_pipeline(
 
     # Uses TFMA to compute a evaluation statistics over features of a model and
     # perform quality validation of a candidate model (compared to a baseline).
-    if eval_config_file:
-        with open(eval_config_file, 'r') as eval_file:
+    if eval_config_path:
+        with open(eval_config_path, 'r') as eval_file:
             eval_str = eval_file.read()
         eval_config = text_format.Parse(eval_str, tfma.EvalConfig())
     else:
@@ -286,6 +286,36 @@ def create_pipeline(
     # NOTE: Uncomment here to add Evaluator to the pipeline.
     components_list.append(evaluator)
 
+    # +--------------------+
+    # |   InfraValidator   |
+    # +--------------------+
+
+    infra_validator = tfx.components.InfraValidator(
+        model=trainer.outputs['model'],
+        # This is the source for the data that will be used to build a request
+        examples=example_gen.outputs['examples'],
+        # Defines what type of model server and where to run it
+        serving_spec=tfx.proto.ServingSpec(
+            tensorflow_serving=tfx.proto.TensorFlowServing(tags=['latest']),
+            local_docker=tfx.proto.LocalDockerConfig()),
+        # Optional config to adjust criteria or workflow
+        validation_spec=tfx.proto.ValidationSpec(
+            # How much time to wait for model to load before automatically
+            # making validation fail
+            max_loading_time_seconds=60,
+            # How many times to retry if infra validation fails
+            num_tries=3),
+        # Optional config to specify how to build sample requests
+        request_spec=tfx.proto.RequestSpec(
+            # tensorflow_serving=tfx.proto.TensorFlowServingRequestSpec(
+            #     signature_names=['serving_default', 'transform_features']),
+            tensorflow_serving=tfx.proto.TensorFlowServingRequestSpec(),
+            num_examples=10
+        )
+    )
+    # NOTE: Uncomment here to add InfraValidator to the pipeline.
+    components_list.append(infra_validator)
+
     # +------------+
     # |   Pusher   |
     # +------------+
@@ -297,6 +327,8 @@ def create_pipeline(
             trainer.outputs['model'],
         'model_blessing':
             evaluator.outputs['blessing'],
+        'infra_blessing':
+            infra_validator.outputs['blessing'],
     }
     if ai_platform_serving_args is not None:
         pusher_args['custom_config'] = {

@@ -27,8 +27,8 @@ def _float_handler(cell: csv_decoder.CSVCell) -> tf.train.Feature:
     value_list = []
     if cell:
         value_list.append(float(cell))
-    elif cell == b'':
-        value_list.append(float('nan'))
+    # elif cell == b'':
+    #     value_list.append(float('nan'))
     return tf.train.Feature(float_list=tf.train.FloatList(value=value_list))
 
 

@@ -36,6 +36,11 @@ def _parse_args():
                           dest='schema_path',
                           default='./schema/schema.pbtxt')
 
+    required.add_argument("--hparams_path",
+                          help="Path to best_hyperparameters.txt.",
+                          dest='hparams_path',
+                          default='.config/best_hyperparameters.txt')
+
     required.add_argument("--eval_config_path",
                           help="Path to custom eval_config.pbtxt.",
                           dest='eval_config_path',
@@ -51,9 +56,9 @@ if __name__ == '__main__':
     PARSER = _parse_args()
 
     # Set logging
-    # # logging.use_absl_handler()
-    # logging.get_absl_handler().use_absl_log_file('absl_logging', PARSER.log_dir)  # noqa: E501
-    # absl.flags.FLAGS.mark_as_parsed()
+    logging.use_absl_handler()
+    logging.get_absl_handler().use_absl_log_file('absl_logging', PARSER.log_dir)  # noqa: E501
+    absl.flags.FLAGS.mark_as_parsed()
     logging.set_verbosity(logging.INFO)
 
     # TFX pipeline produces many output files and metadata. All output data
@@ -61,7 +66,7 @@ if __name__ == '__main__':
     # NOTE: It is recommended to have a separated OUTPUT_DIR which is
     #       *outside* of the source code structure. Please change OUTPUT_DIR
     #       to other location where we can store outputs of the pipeline.
-    OUTPUT_DIR = PARSER.output_dir
+    OUTPUT_DIR = os.path.abspath(PARSER.output_dir)
 
     # TFX produces two types of outputs, files and metadata.
     # - Files will be created under PIPELINE_ROOT directory.
@@ -89,12 +94,7 @@ if __name__ == '__main__':
     MODULE_FILE = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), configs.MODULE_FILE)
 
-    HPARAMS_PATH = os.path.abspath(os.path.join('..',
-                                                PIPELINE_ROOT,
-                                                'Tuner',
-                                                'best_hyperparameters',
-                                                '24',
-                                                'best_hyperparameters.txt'))
+    HPARAMS_PATH = PARSER.hparams_path
 
     EVAL_CONFIG_PATH = PARSER.eval_config_path
 
@@ -116,13 +116,13 @@ if __name__ == '__main__':
             # NOTE: (Optional) Uncomment here to perform HPO tuning or load
             # already tuned hparams.
             enable_tuning=True,
-            # hparams_path=HPARAMS_PATH,
+            hparams_path=HPARAMS_PATH,
             # NOTE: (Optional) Uncomment here to use provide GCP related
             # config for BigQuery with Beam DirectRunner.
             # beam_pipeline_args=configs.
             # BIG_QUERY_WITH_DIRECT_RUNNER_BEAM_PIPELINE_ARGS,
             # NOTE: (Optional) Uncomment here to use custom specific
             # eval_config.
-            eval_config_file=EVAL_CONFIG_PATH,
+            eval_config_path=EVAL_CONFIG_PATH,
             metadata_connection_config=tfx.orchestration.metadata
             .sqlite_metadata_connection_config(METADATA_PATH)))

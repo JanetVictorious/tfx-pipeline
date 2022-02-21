@@ -4,6 +4,7 @@ tensorflow-serving-api<=2.7.0
 tensorflow-probability~=0.15.0
 # tensorflow-decision-forests>=0.2.3
 witwidget~=1.8.0
+jupyter
 jupyterlab
 scikit-learn~=1.0
 matplotlib
